@@ -260,10 +260,6 @@ keytool -genkeypair -alias server -keyalg RSA -keysize 2048 -keystore keystore.j
 
 本项目仅用于教育和演示目的。
 
-## 👨‍💻 作者
-
-NTU学生 - 密码学课程演示项目
-
 ---
 
 **提示：** 运行代码时，请确保理解每个步骤的密码学原理，这样才能在演示时向听众清晰地解释TLS握手的安全机制。
