@@ -1,75 +1,36 @@
 # TLS 握手演示项目
 
-这是一个用于演示TLS（Transport Layer Security）握手过程的Java项目，特别适合用于学术演示和技术讲解。
+这是一个用于演示TLS（Transport Layer Security）握手过程的Java项目，实现了**真实的客户端-服务器网络通信**，完整展示了TLS握手的7个阶段。
 
 ## 📋 项目概述
 
-本项目通过Java代码完整模拟了TLS握手的各个关键阶段，包括：
+本项目通过Java Socket编程实现了真实的网络通信，完整演示了TLS握手的各个关键阶段：
 
 1. **Client Hello & Server Hello** - 协商加密算法，交换随机数
 2. **Server Certificate** - 服务器出示数字证书
 3. **Certificate Verification** - 客户端验证CA签名
 4. **Key Exchange** - Pre-Master Secret的加密交换（RSA方式）
 5. **Session Key Generation** - 生成会话密钥
-6. **Encrypted Communication** - 使用会话密钥进行对称加密通信
+6. **Change Cipher Spec** - 切换到加密模式
+7. **Encrypted Communication** - 使用会话密钥进行对称加密通信
 
-## 🎯 核心演示内容
+## ✨ 核心特性
 
-### 1. 密钥交换（KeyExchangeDemo.java）
+### 🌐 真实网络通信
+- **客户端-服务器架构**：使用Java Socket API实现
+- **多线程支持**：服务器支持多客户端同时连接
+- **跨网络通信**：支持两台电脑通过网络通信
+- **中英双语显示**：所有输出信息均为中英双语
 
-演示RSA密钥交换的核心过程：
+### 🔐 完整TLS握手流程
+- **7个阶段完整实现**：从协议协商到加密通信
+- **密码学算法实现**：RSA、AES-GCM、数字签名
+- **工具类封装**：CryptoUtils封装所有密码学操作
 
-- **客户端生成Pre-Master Secret (PMS)**
-  - 48字节随机数，包含TLS版本号和随机数据
-  
-- **客户端加密PMS**
-  - 使用服务器公钥：`C ≡ PMS^e (mod n)`
-  - 只有服务器拥有私钥，才能解密
-  
-- **服务器解密PMS**
-  - 使用私钥：`PMS ≡ C^d (mod n)`
-  - 证明只有服务器能获得PMS
-
-- **生成会话密钥**
-  - 使用PRF（伪随机函数）结合R1, R2, PMS
-  - 双方生成相同的对称密钥
-
-### 2. 对称加密（CipherSuite.java）
-
-演示使用会话密钥进行实际数据加密：
-
-- **AES-256-GCM加密**
-  - 提供加密和认证（Authenticated Encryption）
-  - 防止数据篡改和重放攻击
-  
-- **加密HTTP报文**
-  - 模拟实际TLS通信中的数据加密过程
-  - 展示IV（初始化向量）的使用
-
-### 3. 数字证书验证（SignatureVerify.java）
-
-演示CA签名验证机制，防止中间人攻击：
-
-- **CA签名过程**
-  - CA使用私钥对证书信息进行签名
-  - 签名 = `Sign(Hash(证书内容), CA私钥)`
-  
-- **客户端验证**
-  - 使用CA公钥验证签名
-  - 验证 = `Verify(签名, Hash(证书内容), CA公钥)`
-  
-- **中间人攻击防护**
-  - 攻击者无法伪造CA签名（没有CA私钥）
-  - 即使截获通信，也无法冒充合法服务器
-
-### 4. 完整握手流程（TLSHandshakeSimulator.java）
-
-整合所有模块，演示完整的TLS握手过程，包括：
-
-- 7个阶段的完整流程
-- TLS 1.3的改进特性
-- 前向安全性（Forward Secrecy）原理
-- Java后端开发实践
+### 📦 模块化设计
+- **网络通信模块**：TLSServer.java、TLSClient.java
+- **密码学工具类**：CryptoUtils.java
+- **演示模块**：保留原有单机演示模块作为参考
 
 ## 🚀 快速开始
 
@@ -78,31 +39,143 @@
 - Java 8 或更高版本
 - 支持Java加密扩展（JCE）
 
-### 编译和运行
+### 编译项目
 
 ```bash
-# 编译所有Java文件
-javac -d . *.java
+# Windows
+compile.bat
 
-# 运行完整握手演示
-java tls.demo.TLSHandshakeSimulator
-
-# 或运行单个模块演示
-java tls.demo.KeyExchangeDemo      # 密钥交换演示
-java tls.demo.CipherSuite          # 对称加密演示
-java tls.demo.SignatureVerify      # 证书验证演示
+# Linux/Mac
+javac -d out -encoding UTF-8 *.java
 ```
+
+### 运行演示
+
+#### 方式1：单机演示（两个终端窗口）
+
+**终端1 - 启动服务器：**
+```bash
+# Windows
+run_server.bat
+
+# Linux/Mac
+cd out
+java tls.demo.TLSServer
+```
+
+**终端2 - 启动客户端：**
+```bash
+# Windows
+run_client.bat
+
+# Linux/Mac
+cd out
+java tls.demo.TLSClient
+```
+
+#### 方式2：两台电脑演示（网络通信）
+
+**服务器电脑：**
+1. 运行 `compile.bat` 编译项目
+2. 运行 `run_server.bat` 启动服务器
+3. 记录服务器IP地址（如：192.168.1.100）
+
+**客户端电脑：**
+1. 修改 `TLSClient.java` 第24行：
+   ```java
+   private static final String SERVER_HOST = "192.168.1.100"; // 改为服务器IP
+   ```
+2. 运行 `compile.bat` 重新编译
+3. 运行 `run_client.bat` 启动客户端
 
 ## 📚 代码结构
 
 ```
-.
-├── KeyExchangeDemo.java          # RSA密钥交换演示
-├── CipherSuite.java              # AES-GCM对称加密演示
-├── SignatureVerify.java          # CA签名验证演示
-├── TLSHandshakeSimulator.java    # 完整握手流程模拟器
-└── README.md                     # 项目说明文档
+crypto_teamwork/
+├── CryptoUtils.java              # 密码学工具类（封装所有密码学操作）
+├── TLSServer.java                # 服务器端程序（网络通信+握手流程）
+├── TLSClient.java                # 客户端程序（网络通信+握手流程）
+│
+├── KeyExchangeDemo.java          # RSA密钥交换演示（保留作为参考）
+├── SignatureVerify.java          # 证书验证演示（保留作为参考）
+├── CipherSuite.java              # AES-GCM加密演示（保留作为参考）
+└── TLSHandshakeSimulator.java    # 完整握手流程模拟（保留作为参考）
 ```
+
+## 🎯 核心演示内容
+
+### 1. 网络通信模块
+
+#### TLSServer.java - 服务器端
+- 监听客户端连接（端口8888）
+- 执行完整的TLS握手流程（7个阶段）
+- 处理加密通信
+- 支持多客户端连接（多线程）
+
+#### TLSClient.java - 客户端
+- 连接到服务器
+- 执行完整的TLS握手流程（7个阶段）
+- 发送和接收加密消息
+- 交互式输入
+
+### 2. 密码学工具类（CryptoUtils.java）
+
+封装所有密码学操作，提供简单接口：
+
+#### RSA密钥交换
+- `generateRSAKeyPair()` - 生成RSA密钥对
+- `generatePMS()` - 生成Pre-Master Secret
+- `encryptPMS()` - 加密PMS
+- `decryptPMS()` - 解密PMS
+- `generateSessionKey()` - 生成会话密钥
+
+#### 数字证书
+- `generateCAKeyPair()` - 生成CA密钥对
+- `signCertificate()` - 对证书签名
+- `verifyCertificate()` - 验证证书签名
+
+#### AES-GCM加密
+- `deriveAESKey()` - 派生AES密钥
+- `encrypt()` - AES-GCM加密
+- `decrypt()` - AES-GCM解密
+
+### 3. 演示模块（保留作为参考）
+
+- **KeyExchangeDemo.java** - RSA密钥交换演示
+- **SignatureVerify.java** - CA签名验证演示
+- **CipherSuite.java** - AES-GCM对称加密演示
+- **TLSHandshakeSimulator.java** - 完整握手流程模拟
+
+## 🔄 TLS握手流程（7个阶段）
+
+### 阶段1：Client Hello & Server Hello
+- 协商TLS版本和加密算法
+- 交换随机数 R1 和 R2（各32字节）
+
+### 阶段2：Server Certificate
+- 服务器发送数字证书
+- 包含服务器公钥和CA签名
+
+### 阶段3：Certificate Verification
+- 客户端验证证书
+- 检查CA签名
+
+### 阶段4：Key Exchange
+- 客户端生成Pre-Master Secret (PMS)
+- 使用服务器公钥加密PMS
+- 服务器使用私钥解密PMS
+
+### 阶段5：Session Key Generation
+- 双方使用 R1 + R2 + PMS 生成会话密钥
+- 使用SHA-256算法
+
+### 阶段6：Change Cipher Spec
+- 双方切换到加密模式
+- 握手完成
+
+### 阶段7：Encrypted Communication
+- 使用AES-256-GCM加密通信
+- 双向加密数据传输
 
 ## 🔐 核心密码学概念
 
@@ -149,89 +222,44 @@ Hash = SHA-256(Certificate)
 Verify = RSA_Decrypt(Signature, CA_PublicKey) == Hash
 ```
 
-## 🎓 扩展话题
+## 🎓 技术实现亮点
 
-### TLS 1.3 改进
+### 1. Socket网络编程
+- 服务器：`ServerSocket`监听端口8888
+- 客户端：`Socket`连接到服务器
+- 数据流：`DataInputStream`和`DataOutputStream`
 
-1. **强制使用ECDHE**
-   - 删除RSA密钥交换
-   - 提供前向安全性
+### 2. 多线程处理
+- 服务器为每个客户端创建新线程
+- 支持多客户端同时连接
+- 线程安全的消息处理
 
-2. **0-RTT握手**
-   - 利用Session Ticket实现快速重连
-   - 第二次连接无需完整握手
+### 3. 消息协议设计
+- 使用分隔符`|||`避免冲突
+- Base64编码传输二进制数据
+- 清晰的消息类型标识
 
-3. **更快的握手速度**
-   - 减少往返次数（从2次减少到1次）
-   - 更少的加密操作
-
-### 前向安全性（Forward Secrecy）
-
-**问题：** 如果服务器私钥泄露，历史通信是否安全？
-
-- **RSA密钥交换：** ✗ 没有前向安全性
-  - 所有会话的PMS都用同一个服务器公钥加密
-  - 私钥泄露后，所有历史通信都能被解密
-
-- **ECDHE/DHE：** ✓ 提供前向安全性
-  - 每次握手都生成新的临时密钥对
-  - 会话密钥由临时密钥计算，不依赖服务器长期私钥
-  - 即使服务器长期私钥泄露，历史通信仍安全
-
-### Java后端开发实践
-
-#### Spring Boot SSL配置
-
-```properties
-server.ssl.key-store=classpath:keystore.jks
-server.ssl.key-store-password=changeit
-server.ssl.key-store-type=JKS
-server.ssl.key-alias=tomcat
-server.port=8443
-```
-
-#### 常见错误处理
-
-**SSLHandshakeException** 可能原因：
-- 证书过期
-- 证书不被信任（不在cacerts中）
-- 证书域名不匹配
-- 证书链不完整
-
-**解决方法：**
-```bash
-# 查看cacerts中的证书
-keytool -list -keystore $JAVA_HOME/jre/lib/security/cacerts
-
-# 导入证书
-keytool -import -alias myca -file ca.crt -keystore cacerts
-
-# 生成自签名证书
-keytool -genkeypair -alias server -keyalg RSA -keysize 2048 -keystore keystore.jks
-```
-
-#### Java信任存储（cacerts）
-
-- **位置：** `$JAVA_HOME/jre/lib/security/cacerts`
-- **默认密码：** `changeit`
-- **内容：** 所有受信任的CA根证书
-- **重要性：** 这是Java信任所有合法证书的来源
+### 4. 错误处理
+- 连接异常处理
+- 消息格式验证
+- 证书验证失败处理
+- 优雅的连接关闭
 
 ## 📖 演示建议
 
 ### 演示顺序
 
-1. **TLSHandshakeSimulator** - 先展示完整流程，建立整体概念
-2. **KeyExchangeDemo** - 深入讲解密钥交换的数学原理
-3. **SignatureVerify** - 解释证书验证和MITM防护
-4. **CipherSuite** - 展示实际数据加密过程
+1. **网络通信演示** - 先展示完整的握手流程
+2. **密码学工具类** - 介绍工具类设计
+3. **加密通信演示** - 展示实际数据加密传输
+4. **技术实现亮点** - 强调后端能力
 
 ### 重点讲解
 
-1. **数学公式** - 强调RSA加密/解密的数学原理
-2. **安全性证明** - 解释为什么只有服务器能解密PMS
-3. **中间人攻击** - 演示CA签名如何防止MITM
-4. **前向安全性** - 对比RSA和ECDHE的区别
+1. **网络编程** - Socket编程、多线程处理
+2. **完整握手流程** - 7个阶段的详细过程
+3. **密码学应用** - RSA、AES-GCM、数字签名
+4. **实际应用场景** - 加密数据传输
 
 ## 🔍 技术细节
 
@@ -251,10 +279,11 @@ keytool -genkeypair -alias server -keyalg RSA -keysize 2048 -keystore keystore.j
 
 ## 📝 注意事项
 
-1. 本项目为**教学演示**目的，简化了部分实现细节
+1. 本项目为**教学演示**目的，实现了完整的TLS握手流程
 2. 实际TLS使用PRF而非SHA-256生成会话密钥
 3. 实际证书验证包含更多检查（如OCSP、CRL等）
 4. 生产环境应使用TLS 1.3和ECDHE，而非RSA密钥交换
+5. 网络通信需要确保防火墙允许端口8888
 
 ## 📄 许可证
 
@@ -266,4 +295,4 @@ NTU学生 - 密码学课程演示项目
 
 ---
 
-**提示：** 运行代码时，请确保理解每个步骤的密码学原理，这样才能在演示时向听众清晰地解释TLS握手的安全机制。
+**提示：** 运行代码时，请确保理解每个步骤的密码学原理和网络通信机制，这样才能在演示时向听众清晰地解释TLS握手的安全机制和实现细节。
